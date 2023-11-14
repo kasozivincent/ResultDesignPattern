@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using LanguageExt;
@@ -26,25 +27,24 @@ public sealed class FollowerService
             .BindAsync(_ => CreateAndInsertFollower(user.Id, followed.Id, utcNow));
     
     private async Task<Either<Error, Unit>> CreateAndInsertFollower(int userId, int followedId, DateTime utcNow)
-    {
-        var follower = Follower.Create(userId, followedId, utcNow);
-        return await _followerRepository.Insert(follower);
-    }
+           => await _followerRepository.Insert(new Follower(userId, followedId, utcNow));
+    
     private async Task<Either<Error, Unit>> CheckIfAlreadyFollowing(User user, User followed, CancellationToken cancellationToken)
-    {
-        var isAlreadyFollowing = await _followerRepository.IsAlreadyFollowingAsync(user.Id, followed.Id, cancellationToken);
-        return isAlreadyFollowing ? FollowerErrors.AlreadyFollowing() : Unit.Default;
-    }
+        => await _followerRepository.IsAlreadyFollowingAsync(user.Id, followed.Id, cancellationToken)
+          ? FollowerErrors.AlreadyFollowing() 
+          : Unit.Default;
+    
     private static Either<Error, Unit> ValidateUser(User user, User followed)
-    {
-        return user.Id == followed.Id
+         => user.Id == followed.Id
             ? FollowerErrors.SameUser()
             : !followed.HasPublicProfile
                 ? FollowerErrors.NonPublicProfile()
                 : Unit.Default;
-    }
 }
 
 public class Follower
 {
+    public Follower(int userId, int followerId, DateTime utcNow)
+    {
+    }
 }
